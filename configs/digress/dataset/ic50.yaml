@@ -1,0 +1,4 @@
+name: 'ic50'
+datadir: 'data/ic50/ic50_pyg'                 # Relative to the moses_dataset.py file
+remove_h: null
+filter: True

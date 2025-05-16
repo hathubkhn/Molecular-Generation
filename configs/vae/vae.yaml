@@ -1,0 +1,10 @@
+data_dir: "./data/generator/vae/zinc20"
+max_molecule_len: 80
+latent_dim: 292
+
+batch_size: 256
+resume: ""
+test_only: "./weights/vae_116.757586328125.pth"
+n_epochs: 1000
+
+save_weight_path: "./weights"

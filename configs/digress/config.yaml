@@ -1,0 +1,16 @@
+defaults:
+    - _self_
+    - general : general_default
+    - model : discrete
+    - train : train_default
+    - dataset : zinc20
+
+hydra:
+  job:
+    chdir: False
+  run:
+    dir: ../ckpt
+
+
+
+

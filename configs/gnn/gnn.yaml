@@ -1,0 +1,6 @@
+N_fingerprints: 324
+radius: 1
+dim: 50
+layer_hidden: 6
+layer_output: 6
+model_path: "./weights/gnn_pic50_17_4.pth"
