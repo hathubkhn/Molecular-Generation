@@ -63,7 +63,7 @@ Data and trained weights can be downloaded here: https://drive.google.com/drive/
 python generator.py --model digress --task train --n_epochs 100 --batch_size 1024
 ```
 
-You can monitor training progress through logs and generated samples. Model checkpoints will be saved in the `weights` directory.
+Configuration for DiGress training can be modified in `configs/digress/train/train_default.yaml`.
 
 #### MOOD Generator
 
