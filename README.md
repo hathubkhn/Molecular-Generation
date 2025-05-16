@@ -5,37 +5,53 @@ Pytorch implementation for "Integrating Diffusion Models and Molecular Modeling 
 ## Environment Setup
 
 This code was tested with PyTorch 2.0.1, CUDA 11.8 and torch_geometrics 2.3.1
+
 ### 1. Create a conda environment with RDKit
+
 ```bash
 # Download anaconda/miniconda if needed
+
 # Create a rdkit environment that directly contains rdkit
 conda create -c conda-forge -n digress rdkit=2023.03.2 python=3.9
+
 # Activate the environment
 conda activate digress
+
 # Check that RDKit is installed correctly
 python -c 'from rdkit import Chem'
 ```
+
 ### 2. Install graph-tool
+
 ```bash
 # Install graph-tool
 conda install -c conda-forge graph-tool=2.45
+
 # Check that graph-tool is installed correctly
 python -c 'import graph_tool as gt'
 ```
+
 ### 3. Install CUDA and PyTorch
+
 ```bash
 # Install the nvcc drivers for your cuda version
 conda install -c "nvidia/label/cuda-11.8.0" cuda
+
 # Install a compatible version of PyTorch
 pip install torch==2.0.1 --index-url https://download.pytorch.org/whl/cu118
 ```
+
 ### 4. Install other dependencies
+
 ```bash
 # Install remaining packages
 pip install -r requirements.txt
 ```
 
 ## Training Models
+
+Data and trained weights can be downloaded here: https://drive.google.com/drive/folders/1WgtLS8pAy-bgU_L9s94MvZg1IwTbiIrr?usp=sharing
+
 
 ### Training the Generators
 
@@ -88,43 +104,58 @@ python train.py --config ../../configs/gnn/gnn.yaml
 
 ## Inference
 
-### Generating Molecules with Command Line
+### Direct Molecule Generation (Generator Only)
 
-You can generate molecules with specific properties using the command line with different generators:
+You can directly generate molecules using any generator without filtering:
 
 #### DiGress Generator
 
 ```bash
 # Generate molecules using DiGress
-python run.py --model digress --n_final_smiles 20
+python generator.py --model digress --task generate --n_samples_to_generate 100
 ```
 
 #### MOOD Generator
 
 ```bash
 # Generate molecules using MOOD
-python run.py --model mood --n_final_smiles 20
+python generator.py --model mood --task generate --n_samples_to_generate 100
 ```
 
 #### GDSS Generator
 
 ```bash
 # Generate molecules using GDSS
-python run.py --model gdss --n_final_smiles 20
+python generator.py --model gdss --task generate --n_samples_to_generate 100
 ```
 
 #### Molecular VAE Generator
 
 ```bash
 # Generate molecules using Molecular VAE
-python run.py --model vae --n_final_smiles 20
+python generator.py --model vae --task generate --n_samples_to_generate 100
 ```
 
-Each command will generate 20 molecules after filtering based on logP, SA, and pIC50 properties.
+These commands will generate the specified number of SMILES strings directly from the corresponding generator without any filtering. The results will be saved to a text file named `generated_smiles_{model}.txt`.
+
+### Complete Pipeline (Generation + Filtering)
+
+To run the complete pipeline (generation, property prediction, and filtering):
+
+```bash
+# Complete pipeline with DiGress generator
+python run.py --model digress --n_final_smiles 20
+```
+
+This pipeline will:
+1. Generate a larger batch of molecules using the specified generator
+2. Calculate properties (logP, SA, pIC50) for each molecule
+3. Filter molecules based on property thresholds
+4. Return the requested number of filtered molecules
 
 ### Using the Gradio Demo Interface
 
-For a user-friendly interface, you can use the Gradio demo (currently configured for DiGress only):
+For a user-friendly interface that runs the complete pipeline with DiGress:
 
 ```bash
 # Launch the Gradio interface
@@ -140,7 +171,7 @@ The interface allows you to:
 
 ## Project Structure
 
-- `run.py`: Main script for molecule generation with filtering
+- `run.py`: Complete pipeline script (generation + filtering)
 - `gradio_demo.py`: Web interface for molecule generation
 - `generator.py`: Contains implementations of molecule generators
 - `filterer.py`: Handles SMILES filtering based on molecular properties
@@ -166,3 +197,7 @@ If you use this code, please cite our paper:
   year={}
 }
 ```
+
+## License
+
+[MIT License](LICENSE) 
