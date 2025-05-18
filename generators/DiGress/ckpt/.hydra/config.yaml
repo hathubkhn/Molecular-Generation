@@ -1,0 +1,58 @@
+general:
+  name: graph-tf-model
+  wandb: online
+  gpus: 1
+  resume: null
+  test_only: /home/user03/GEN-BIO/lmtu/generators/DiGress/src/trained_checkpoints/checkpoints_zinc/graph-tf-model/last-v1.ckpt
+  check_val_every_n_epochs: 5
+  sample_every_val: 4
+  val_check_interval: null
+  samples_to_generate: 512
+  samples_to_save: 0
+  chains_to_save: 0
+  log_every_steps: 50
+  number_chain_steps: 50
+  final_model_samples_to_generate: 10
+  final_model_samples_to_save: 0
+  final_model_chains_to_save: 0
+  evaluate_all_checkpoints: false
+model:
+  type: discrete
+  transition: marginal
+  model: graph_tf
+  diffusion_steps: 500
+  diffusion_noise_schedule: cosine
+  n_layers: 5
+  extra_features: all
+  hidden_mlp_dims:
+    X: 256
+    E: 128
+    'y': 128
+  hidden_dims:
+    dx: 256
+    de: 64
+    dy: 64
+    n_head: 8
+    dim_ffX: 256
+    dim_ffE: 128
+    dim_ffy: 128
+  lambda_train:
+  - 5
+  - 0
+train:
+  n_epochs: 100
+  batch_size: 256
+  lr: 0.0002
+  clip_grad: null
+  save_model: true
+  num_workers: 0
+  ema_decay: 0
+  progress_bar: true
+  weight_decay: 1.0e-12
+  optimizer: nadamw
+  seed: 0
+dataset:
+  name: zinc20
+  datadir: ./data/zinc20/zinc20_pyg
+  remove_h: null
+  filter: true
