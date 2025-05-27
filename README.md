@@ -102,6 +102,12 @@ cd predictors/molecularGNN_smiles/main/
 python train.py --config ../../configs/gnn/gnn.yaml
 ```
 
+#### SMILES Data Augmentation
+
+![SMILES Augmentation](asserts/augment.png)
+
+To improve model robustness, the GNN predictor uses SMILES data augmentation during training. This process generates multiple SMILES representations of the same molecule, effectively increasing the training dataset size. The augmentation script is in data/augment_smiles.py
+
 ## Inference
 
 ### Direct Molecule Generation (Generator Only)
@@ -140,6 +146,12 @@ These commands will generate the specified number of SMILES strings directly fro
 
 ### Complete Pipeline (Generation + Filtering)
 
+## Pipeline Overview
+
+![Pipeline Architecture](asserts/pipeline.png)
+
+**Pipeline Summary**: The complete molecule generation and filtering pipeline consists of several main stages: **Molecule Generation** using the best generator DiGress, **Property Prediction** where generated molecules are evaluated using a GNN-based predictor for pIC50 values along with calculation of other molecular properties like logP, SA scores and number of large rings, **Filtering** where molecules are screened based on specified property thresholds and structural constraints, and **Output** of the final set of optimized molecules that meet all criteria for potential PARP1 inhibitor activity.
+
 To run the complete pipeline (generation, property prediction, and filtering):
 
 ```bash
@@ -155,19 +167,20 @@ This pipeline will:
 
 ### Using the Gradio Demo Interface
 
-For a user-friendly interface that runs the complete pipeline with DiGress:
+For a user-friendly interface that runs the complete pipeline:
 
 ```bash
 # Launch the Gradio interface
 python gradio_demo.py
 ```
 
+![Gradio demo](asserts/gradio.png)
+
 The interface allows you to:
 1. Specify the number of molecules to generate
-2. Set property ranges (logP, SA, pIC50)
-3. Define maximum number of large rings allowed
-4. Visualize generated molecules
-5. Export results to CSV
+2. Set property ranges (logP, SA, pIC50, number of large rings)
+3. Start generating molecules and visualization by clicking "Generate Molecules"
+4. Export results to CSV by clicking "Export to CSV"
 
 ## Project Structure
 
