@@ -42,7 +42,7 @@ def get_final_smiles(generator, filterer, thresholds, n_final_smiles, scale_up=2
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Generate and filter SMILES")
     parser.add_argument("--model", type=str, default="digress", choices=["digress", "mood", "gdss", "vae"], help="Choose SMILES generator")
-    parser.add_argument("--n_final_smiles", type=str, default=20, help="Number of SMILES to save")
+    parser.add_argument("--n_final_smiles", type=str, default=5, help="Number of SMILES to save")
     args = parser.parse_args()
 
     if args.model == "digress":
@@ -71,6 +71,8 @@ if __name__ == '__main__':
         raise ValueError("Model not implemented")
 
     filterer = SMILESFilterer()
-    final_smiles = get_final_smiles(generator, filterer, args.n_final_smiles)
+
+    thresholds = (1, 4, 1, 3, 8, 12, 3)
+    final_smiles = get_final_smiles(generator, filterer, thresholds, args.n_final_smiles)
     
     print(final_smiles)

@@ -15,7 +15,7 @@ from torch_geometric.data import Data, InMemoryDataset, download_url
 
 from src import utils
 from src.analysis.rdkit_functions import mol2smiles, build_molecule_with_partial_charges, compute_molecular_metrics
-from src.datasets.abstract_dataset import AbstractDatasetInfos, MolecularDataModule
+from src.digress_datasets.abstract_dataset import AbstractDatasetInfos, MolecularDataModule
 
 
 TRAIN_HASH = '05ad85d871958a05c02ab51a4fde8530'

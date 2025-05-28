@@ -10,12 +10,12 @@ import torch
 import torch.nn.functional as F
 from tqdm import tqdm
 import numpy as np
-from torch_geometric.data import Data, InMemoryDataset, download_url
+from torch_geometric.data import Data, InMemoryDataset
 import pandas as pd
 
 import utils
 from analysis.rdkit_functions import mol2smiles, build_molecule_with_partial_charges, compute_molecular_metrics
-from datasets.abstract_dataset import AbstractDatasetInfos, MolecularDataModule
+from digress_datasets.abstract_dataset import AbstractDatasetInfos, MolecularDataModule
 
 
 def to_list(value: Any) -> Sequence:
@@ -279,4 +279,4 @@ def get_train_smiles(cfg, datamodule, dataset_infos, evaluate_dataset=False):
 
 
 if __name__ == "__main__":
-    ds = [ZINCDataset(s, os.path.join(os.path.abspath(__file__), "../../../../data/zinc20"), preprocess=True) for s in ["train", "val", "test"]]
+    ds = [ZINCDataset(s, os.path.join(os.path.abspath(__file__), "../../../../../../data/generator/digress/zinc20"), preprocess=True) for s in ["train", "val", "test"]]

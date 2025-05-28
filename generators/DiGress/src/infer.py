@@ -34,13 +34,13 @@ def main(cfg: DictConfig):
         from analysis.visualization import MolecularVisualization
 
         if dataset_config['name'] == 'guacamol':
-            from _datasets import guacamol_dataset
+            from digress_datasets import guacamol_dataset
             datamodule = guacamol_dataset.GuacamolDataModule(cfg)
             dataset_infos = guacamol_dataset.Guacamolinfos(datamodule, cfg)
             train_smiles = None
             
         elif dataset_config.name == 'zinc20':
-            from _datasets import zinc20_dataset
+            from digress_datasets import zinc20_dataset
             print("Imported zinc20_dataset")
             datamodule = zinc20_dataset.ZINCDataModule(cfg)
             print("DataModule loaded!")
@@ -48,7 +48,7 @@ def main(cfg: DictConfig):
             print("DataInfos loaded!")
             train_smiles = None
         elif dataset_config.name == 'ic50':
-            from _datasets import ic50_dataset
+            from digress_datasets import ic50_dataset
             datamodule = ic50_dataset.IC50DataModule(cfg)
             dataset_infos = ic50_dataset.IC50infos(datamodule, cfg)
             train_smiles = None

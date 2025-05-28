@@ -163,7 +163,7 @@ class DigressGenerator():
         from diffusion.extra_features_molecular import ExtraMolecularFeatures
         from analysis.visualization import MolecularVisualization
     
-        from datasets import zinc20_dataset
+        from digress_datasets import zinc20_dataset
         datamodule = zinc20_dataset.ZINCDataModule(cfg)
         dataset_infos = zinc20_dataset.ZINCinfos(datamodule, cfg)
         train_smiles = None
@@ -188,6 +188,11 @@ class DigressGenerator():
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
         if self.cfg.general.test_only:
+            if 'datasets' not in sys.modules:
+                import digress_datasets
+                sys.modules['datasets'] = digress_datasets
+                sys.modules['datasets.zinc20_dataset'] = digress_datasets.zinc20_dataset
+            
             checkpoint = torch.load(self.cfg.general.test_only, map_location=self.device)
             self.model.load_state_dict(checkpoint['state_dict'])
             print(f"Loaded weight from {self.cfg.general.test_only}")
@@ -233,7 +238,8 @@ class DigressGenerator():
     def generate(self, n_samples=10):
         import os
         os.environ["WANDB_DISABLED"] = "true"
-        print(f"Generating {n_samples} samples...")
+        # print(f"Generating {n_samples} samples...")
+
         smiles = self.model.get_smiles(n_samples, gen_batchsize=4096)
         return smiles
 

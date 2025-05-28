@@ -73,7 +73,7 @@ def main(cfg: DictConfig):
     dataset_config = cfg["dataset"]
 
     if dataset_config["name"] in ['sbm', 'comm20', 'planar']:
-        from datasets.spectre_dataset import SpectreGraphDataModule, SpectreDatasetInfos
+        from digress_datasets.spectre_dataset import SpectreGraphDataModule, SpectreDatasetInfos
         from analysis.spectre_utils import PlanarSamplingMetrics, SBMSamplingMetrics, Comm20SamplingMetrics
         from analysis.visualization import NonMolecularVisualization
 
@@ -109,30 +109,30 @@ def main(cfg: DictConfig):
         from analysis.visualization import MolecularVisualization
 
         if dataset_config["name"] == 'qm9':
-            from datasets import qm9_dataset
+            from digress_datasets import qm9_dataset
             datamodule = qm9_dataset.QM9DataModule(cfg)
             dataset_infos = qm9_dataset.QM9infos(datamodule=datamodule, cfg=cfg)
             train_smiles = qm9_dataset.get_train_smiles(cfg=cfg, train_dataloader=datamodule.train_dataloader(),
                                                         dataset_infos=dataset_infos, evaluate_dataset=False)
         elif dataset_config['name'] == 'guacamol':
-            from datasets import guacamol_dataset
+            from digress_datasets import guacamol_dataset
             datamodule = guacamol_dataset.GuacamolDataModule(cfg)
             dataset_infos = guacamol_dataset.Guacamolinfos(datamodule, cfg)
             train_smiles = None
 
         elif dataset_config.name == 'moses':
-            from datasets import moses_dataset
+            from digress_datasets import moses_dataset
             datamodule = moses_dataset.MosesDataModule(cfg)
             dataset_infos = moses_dataset.MOSESinfos(datamodule, cfg)
             train_smiles = None
             
         elif dataset_config.name == 'zinc20':
-            from datasets import zinc20_dataset
+            from digress_datasets import zinc20_dataset
             datamodule = zinc20_dataset.ZINCDataModule(cfg)
             dataset_infos = zinc20_dataset.ZINCinfos(datamodule, cfg)
             train_smiles = None
         elif dataset_config.name == 'ic50':
-            from datasets import ic50_dataset
+            from digress_datasets import ic50_dataset
             datamodule = ic50_dataset.IC50DataModule(cfg)
             dataset_infos = ic50_dataset.IC50infos(datamodule, cfg)
             train_smiles = None

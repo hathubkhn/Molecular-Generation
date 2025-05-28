@@ -1,14 +1,9 @@
-import argparse
 import sys
-import time
-import os
-import random
 import pandas as pd
 import numpy as np
 import base64
 import io
 from PIL import Image
-import cv2
 import gradio as gr
 from rdkit import Chem
 from rdkit.Chem import Draw
@@ -40,7 +35,7 @@ def process(num_molecules, lower_logP, upper_logP, lower_SA, upper_SA, lower_pIC
     
     thresholds = [lower_logP, upper_logP, lower_SA, upper_SA, lower_pIC50, upper_pIC50, max_rings_count]
     # Generate SMILES using get_final_smiles function
-    generated_smiles = get_final_smiles(generator, filterer, thresholds, num_molecules, scale_up=10)
+    generated_smiles = get_final_smiles(generator, filterer, thresholds, num_molecules, scale_up=20)
     
     # Filter by property ranges as needed
     results = []
@@ -124,6 +119,7 @@ generated_data = []
 
 # Create Gradio interface
 def main():
+    print("Starting Gradio interface...")
     with gr.Blocks() as demo:
         gr.Markdown("# Molecule Generator: DiGress")
         gr.Markdown("# pIC50 Predictor: GNN")

@@ -15,7 +15,7 @@ import pandas as pd
 
 from src import utils
 from src.analysis.rdkit_functions import mol2smiles, build_molecule_with_partial_charges, compute_molecular_metrics
-from src.datasets.abstract_dataset import AbstractDatasetInfos, MolecularDataModule
+from src.digress_datasets.abstract_dataset import AbstractDatasetInfos, MolecularDataModule
 
 
 def to_list(value: Any) -> Sequence:
@@ -24,16 +24,24 @@ def to_list(value: Any) -> Sequence:
     else:
         return [value]
 
+def read_txt(fpath):
+    smiles_list = []
+    with open(fpath, 'r') as file:
+        lines = file.readlines()
+    for line in lines:
+        smile = line.split()[0]
+        smiles_list.append(smile)
+    return smiles_list
 
-atom_decoder = ['C', 'N', 'S', 'O', 'F', 'Cl', 'Br', 'H']
+atom_decoder = ['C', 'N', 'S', 'O', 'F', 'Cl', 'Br', 'H', 'Si', 'I']
 
 
-class MOSESDataset(InMemoryDataset):
-    train_url = 'https://media.githubusercontent.com/media/molecularsets/moses/master/data/train.csv'
-    val_url = 'https://media.githubusercontent.com/media/molecularsets/moses/master/data/test.csv'
-    test_url = 'https://media.githubusercontent.com/media/molecularsets/moses/master/data/test_scaffolds.csv'
+class IC50Dataset(InMemoryDataset):
+    # train_url = 'https://media.githubusercontent.com/media/molecularsets/moses/master/data/train.csv'
+    # val_url = 'https://media.githubusercontent.com/media/molecularsets/moses/master/data/test.csv'
+    # test_url = 'https://media.githubusercontent.com/media/molecularsets/moses/master/data/test_scaffolds.csv'
 
-    def __init__(self, stage, root, filter_dataset: bool, transform=None, pre_transform=None, pre_filter=None):
+    def __init__(self, stage, root, filter_dataset=True, transform=None, pre_transform=None, pre_filter=None):
         self.stage = stage
         self.atom_decoder = atom_decoder
         self.filter_dataset = filter_dataset
@@ -48,11 +56,11 @@ class MOSESDataset(InMemoryDataset):
 
     @property
     def raw_file_names(self):
-        return ['train_moses.csv', 'val_moses.csv', 'test_moses.csv']
+        return ['ic50_train.txt', 'ic50_val.txt', 'ic50_val.txt']
 
     @property
     def split_file_name(self):
-        return ['train_moses.csv', 'val_moses.csv', 'test_moses.csv']
+        return ['ic50_train.txt', 'ic50_val.txt', 'ic50_val.txt']
 
     @property
     def split_paths(self):
@@ -68,17 +76,6 @@ class MOSESDataset(InMemoryDataset):
         else:
             return ['train.pt', 'test.pt', 'test_scaffold.pt']
 
-    def download(self):
-        import rdkit  # noqa
-        train_path = download_url(self.train_url, self.raw_dir)
-        os.rename(train_path, osp.join(self.raw_dir, 'train_moses.csv'))
-
-        test_path = download_url(self.test_url, self.raw_dir)
-        os.rename(test_path, osp.join(self.raw_dir, 'val_moses.csv'))
-
-        valid_path = download_url(self.val_url, self.raw_dir)
-        os.rename(valid_path, osp.join(self.raw_dir, 'test_moses.csv'))
-
 
     def process(self):
         RDLogger.DisableLog('rdApp.*')
@@ -86,8 +83,11 @@ class MOSESDataset(InMemoryDataset):
 
         bonds = {BT.SINGLE: 0, BT.DOUBLE: 1, BT.TRIPLE: 2, BT.AROMATIC: 3}
 
+        
+        
         path = self.split_paths[self.file_idx]
-        smiles_list = pd.read_csv(path)['SMILES'].values
+        # smiles_list = pd.read_csv(path)['SMILES'].values
+        smiles_list = read_txt(path)
 
         data_list = []
         smiles_kept = []
@@ -96,9 +96,18 @@ class MOSESDataset(InMemoryDataset):
             mol = Chem.MolFromSmiles(smile)
             N = mol.GetNumAtoms()
 
+            check = 0
+
             type_idx = []
             for atom in mol.GetAtoms():
-                type_idx.append(types[atom.GetSymbol()])
+                if atom.GetSymbol() in types:
+                    type_idx.append(types[atom.GetSymbol()])
+                else:
+                    check = 1
+                    break
+
+            if check == 1:
+                continue
 
             row, col, edge_type = [], [], []
             for bond in mol.GetBonds():
@@ -163,7 +172,7 @@ class MOSESDataset(InMemoryDataset):
 
 
 
-class MosesDataModule(MolecularDataModule):
+class IC50DataModule(MolecularDataModule):
     def __init__(self, cfg):
         self.remove_h = False
         self.datadir = cfg.dataset.datadir
@@ -171,25 +180,26 @@ class MosesDataModule(MolecularDataModule):
         self.train_smiles = []
         base_path = pathlib.Path(os.path.realpath(__file__)).parents[2]
         root_path = os.path.join(base_path, self.datadir)
-        datasets = {'train': MOSESDataset(stage='train', root=root_path, filter_dataset=self.filter_dataset),
-                    'val': MOSESDataset(stage='val', root=root_path, filter_dataset=self.filter_dataset),
-                    'test': MOSESDataset(stage='test', root=root_path, filter_dataset=self.filter_dataset)}
+        datasets = {'train': IC50Dataset(stage='train', root=root_path, filter_dataset=self.filter_dataset),
+                    'val': IC50Dataset(stage='val', root=root_path, filter_dataset=self.filter_dataset),
+                    'test': IC50Dataset(stage='test', root=root_path, filter_dataset=self.filter_dataset)}
         super().__init__(cfg, datasets)
 
 
 
 
-class MOSESinfos(AbstractDatasetInfos):
-    def __init__(self, datamodule, cfg, recompute_statistics=False, meta=None):
-        self.name = 'MOSES'
+class IC50infos(AbstractDatasetInfos):
+    def __init__(self, datamodule, cfg, recompute_statistics=True, meta=None):
+        self.name = 'IC50'
         self.input_dims = None
         self.output_dims = None
         self.remove_h = False
 
         self.atom_decoder = atom_decoder
         self.atom_encoder = {atom: i for i, atom in enumerate(self.atom_decoder)}
-        self.atom_weights = {0: 12, 1: 14, 2: 32, 3: 16, 4: 19, 5: 35.4, 6: 79.9, 7: 1}
-        self.valencies = [4, 3, 4, 2, 1, 1, 1, 1]
+        #############      ['C',   'N',   'S',   'O',   'F',   'Cl',    'Br',    'H',  'Si',     'I']
+        self.atom_weights = {0: 12, 1: 14, 2: 32, 3: 16, 4: 19, 5: 35.4, 6: 79.9, 7: 1, 8: 28.09, 9: 126.9}
+        self.valencies =    [4,     3,     4,     2,     1,     1,       1,       1,    4,        1]
         self.num_atom_types = len(self.atom_decoder)
         self.max_weight = 350
 
@@ -197,20 +207,22 @@ class MOSESinfos(AbstractDatasetInfos):
                           node_types=f'{self.name}_atom_types.txt',
                           edge_types=f'{self.name}_edge_types.txt',
                           valency_distribution=f'{self.name}_valencies.txt')
-
-        self.n_nodes = torch.tensor([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.097634362347889692e-06,
-                                     1.858580617408733815e-05, 5.007842264603823423e-05, 5.678996240021660924e-05,
-                                     1.244216400664299726e-04, 4.486406978685408831e-04, 2.253012731671333313e-03,
-                                     3.231865121051669121e-03, 6.709992419928312302e-03, 2.289564721286296844e-02,
-                                     5.411050841212272644e-02, 1.099515631794929504e-01, 1.223291903734207153e-01,
-                                     1.280680745840072632e-01, 1.445975750684738159e-01, 1.505961418151855469e-01,
-                                     1.436946094036102295e-01, 9.265746921300888062e-02, 1.820066757500171661e-02,
-                                     2.065089574898593128e-06])
+    
+        # self.n_nodes = torch.tensor([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.097634362347889692e-06,
+        #                              1.858580617408733815e-05, 5.007842264603823423e-05, 5.678996240021660924e-05,
+        #                              1.244216400664299726e-04, 4.486406978685408831e-04, 2.253012731671333313e-03,
+        #                              3.231865121051669121e-03, 6.709992419928312302e-03, 2.289564721286296844e-02,
+        #                              5.411050841212272644e-02, 1.099515631794929504e-01, 1.223291903734207153e-01,
+        #                              1.280680745840072632e-01, 1.445975750684738159e-01, 1.505961418151855469e-01,
+        #                              1.436946094036102295e-01, 9.265746921300888062e-02, 1.820066757500171661e-02,
+        #                              2.065089574898593128e-06])
+        self.n_nodes = None
         self.max_n_nodes = len(self.n_nodes) - 1 if self.n_nodes is not None else None
         self.node_types = torch.tensor([0.722338, 0.13661, 0.163655, 0.103549, 0.1421803, 0.005411, 0.00150, 0.0])
         self.edge_types = torch.tensor([0.89740, 0.0472947, 0.062670, 0.0003524, 0.0486])
-        self.valency_distribution = torch.zeros(3 * self.max_n_nodes - 2)
-        self.valency_distribution[:7] = torch.tensor([0.0, 0.1055, 0.2728, 0.3613, 0.2499, 0.00544, 0.00485])
+        # self.valency_distribution = torch.zeros(3 * self.max_n_nodes - 2)
+        self.valency_distribution = None
+        # self.valency_distribution[:7] = torch.tensor([0.0, 0.1055, 0.2728, 0.3613, 0.2499, 0.00544, 0.00485])
 
         if meta is None:
             meta = dict(n_nodes=None, node_types=None, edge_types=None, valency_distribution=None)
@@ -274,5 +286,5 @@ def get_train_smiles(cfg, datamodule, dataset_infos, evaluate_dataset=False):
 
 
 if __name__ == "__main__":
-    ds = [MOSESDataset(s, os.path.join(os.path.abspath(__file__), "../../../data/moses"),
+    ds = [IC50Dataset(s, os.path.join(os.path.abspath(__file__), "../../../data/ic50"),
                        preprocess=True) for s in ["train", "val", "test"]]
