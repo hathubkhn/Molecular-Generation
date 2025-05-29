@@ -50,8 +50,18 @@ pip install -r requirements.txt
 
 ## Training Models
 
+### Data and Weights Setup
+
 Data and trained weights can be downloaded here: https://drive.google.com/drive/folders/1WgtLS8pAy-bgU_L9s94MvZg1IwTbiIrr?usp=sharing
 
+After downloading the data and weights files, extract them and organize the directories:
+
+```bash
+unzip data.zip
+unzip weights.zip
+```
+
+Make sure the `./data/` directory contains the `generator` and `predictor` folders with the necessary training data and pre-trained weights.
 
 ### Training the Generators
 
