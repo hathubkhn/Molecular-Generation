@@ -203,13 +203,16 @@ class DigressGenerator():
 
         callbacks = []
         if self.cfg.train.save_model:
-            checkpoint_callback = ModelCheckpoint(dirpath=f"weights/{self.cfg.general.name}",
+            dirpath = f"weights/{self.cfg.general.name}_{self.cfg.model.diffusion_steps}"
+            if not os.path.exists(dirpath):
+                os.makedirs(dirpath)
+            checkpoint_callback = ModelCheckpoint(dirpath=dirpath,
                                               filename="{epoch}",
                                               monitor="val/epoch_NLL",
                                               save_top_k=5,
                                               mode="min",
                                               every_n_epochs=1)
-            last_ckpt_save = ModelCheckpoint(dirpath=f"weights/{self.cfg.general.name}", filename="last", every_n_epochs=1)
+            last_ckpt_save = ModelCheckpoint(dirpath=dirpath, filename="last", every_n_epochs=1)
             callbacks.append(last_ckpt_save)
             callbacks.append(checkpoint_callback)
     
@@ -247,11 +250,12 @@ class DigressGenerator():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train or generate SMILES with Generators")
     parser.add_argument("--model", type=str, required=True, choices=["digress", "mood", "gdss", "vae"], default="digress", help="Choose generative model")
+    parser.add_argument("--diffusion_steps", type=int, default=500, help="Number of diffusion steps")
     parser.add_argument("--task", type=str, choices=["train", "generate"], default="generate")
     parser.add_argument("--n_epochs", type=int, default=100, help="Number of epochs for training.")
     parser.add_argument("--batch_size", type=int, default=1024, help="Batch size for training.")
     parser.add_argument("--test_only", type=str, default="")
-    parser.add_argument("--n_samples_to_generate", type=int, default=20)
+    parser.add_argument("--n_samples_to_generate", type=int, default=10)
     args = parser.parse_args()
 
     if args.model == "digress":
@@ -264,6 +268,7 @@ if __name__ == "__main__":
             digress_cfg.general.test_only = args.test_only
             digress_cfg.train.batch_size = 2048
         generator = DigressGenerator(digress_cfg)
+        generator.model.T = args.diffusion_steps
     
     elif args.model == "mood":
         sys.path.append("./generators/MOOD/")
@@ -300,6 +305,7 @@ if __name__ == "__main__":
     else:
         generated_smiles = generator.generate(n_samples=args.n_samples_to_generate)
         lines = "\n".join(generated_smiles)
-        with open(f"generated_smiles_{args.model}.txt", "w") as output_f:
+        save_path = f"generated_smiles_{args.model}_{args.diffusion_steps}.txt"    
+        with open(save_path, "w") as output_f:
             output_f.writelines(lines)
-        print(f"Saved {args.n_samples_to_generate} samples to generated_smiles_{args.model}.txt")
+        print(f"Saved {args.n_samples_to_generate} samples to {save_path}")

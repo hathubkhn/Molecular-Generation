@@ -3,10 +3,15 @@ import pandas as pd
 import numpy as np
 import base64
 import io
+import os
 from PIL import Image
 import gradio as gr
 from rdkit import Chem
 from rdkit.Chem import Draw
+
+# Set custom temp directory for Gradio to avoid permission issues
+os.environ['GRADIO_TEMP_DIR'] = './gradio_temp'
+os.makedirs('./gradio_temp', exist_ok=True)
 
 # Import the function from run.py and other required components
 from run import get_final_smiles, load_digress_config
@@ -28,14 +33,14 @@ def numpy_to_base64(img_array):
     img_str = base64.b64encode(buffer.getvalue()).decode("utf-8")
     return f"data:image/png;base64,{img_str}"
 
-def process(num_molecules, lower_logP, upper_logP, lower_SA, upper_SA, lower_pIC50, upper_pIC50, max_rings_count):
+def process(num_molecules, lower_logP, upper_logP, lower_SA, upper_SA, lower_pIC50, upper_pIC50, max_atoms_per_ring, max_rings_count):
     # Initialize generator and filterer
     generator = load_generator()
     filterer = SMILESFilterer()
     
-    thresholds = [lower_logP, upper_logP, lower_SA, upper_SA, lower_pIC50, upper_pIC50, max_rings_count]
+    thresholds = [lower_logP, upper_logP, lower_SA, upper_SA, lower_pIC50, upper_pIC50, max_atoms_per_ring, max_rings_count]
     # Generate SMILES using get_final_smiles function
-    generated_smiles = get_final_smiles(generator, filterer, thresholds, num_molecules, scale_up=20)
+    generated_smiles = get_final_smiles(generator, filterer, thresholds, num_molecules, scale_up=10)
     
     # Filter by property ranges as needed
     results = []
@@ -127,10 +132,14 @@ def main():
         with gr.Row():
             with gr.Column():
                 gr.Markdown("### General Settings")
-                n_sample_to_generate = gr.Number(label="Number of molecules to generate", value=10, precision=0)
+                n_sample_to_generate = gr.Number(label="Number of molecules to generate", value=5, precision=0)
+                
+            with gr.Column():
+                gr.Markdown("### Ring Constraints")
+                max_atoms_per_ring = gr.Number(label="Maximum number of atoms per ring", value=6)
                 max_rings_count = gr.Number(label="Maximum number of large rings allowed", value=2)
             
-            with gr.Column():
+            # with gr.Column():
                 gr.Markdown("### LogP Range")
                 lower_logP = gr.Number(label="Min", value=1)
                 upper_logP = gr.Number(label="Max", value=4)
@@ -140,10 +149,10 @@ def main():
                 lower_SA = gr.Number(label="Min", value=1)
                 upper_SA = gr.Number(label="Max", value=3)
                 
-            with gr.Column():
+            # with gr.Column():
                 gr.Markdown("### pIC50 Range")
                 lower_pIC50 = gr.Number(label="Min", value=8)
-                upper_pIC50 = gr.Number(label="Max", value=12)
+                upper_pIC50 = gr.Number(label="Max", value=20)
     
         generate_button = gr.Button("Generate Molecules")
         export_button = gr.Button("Export to CSV")
@@ -154,7 +163,7 @@ def main():
     
         generate_button.click(
             process,
-            inputs=[n_sample_to_generate, lower_logP, upper_logP, lower_SA, upper_SA, lower_pIC50, upper_pIC50, max_rings_count],
+            inputs=[n_sample_to_generate, lower_logP, upper_logP, lower_SA, upper_SA, lower_pIC50, upper_pIC50, max_atoms_per_ring, max_rings_count],
             outputs=output
         )
 

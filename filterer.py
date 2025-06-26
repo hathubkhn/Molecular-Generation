@@ -15,32 +15,32 @@ class SMILESFilterer():
         sys.path.append("./predictors/molecularGNN_smiles/main/")
         self.pic50_predictor = GNNPredictor(cfg_dir="./configs/gnn")
 
-    def count_large_rings(self, smiles, max_atoms_per_ring=6):
+    def count_large_rings(self, smiles, max_atoms_per_ring):
        try:
            mol = Chem.MolFromSmiles(smiles)
            if mol is None:
                return None
            ring_info = mol.GetRingInfo()
            ring_sizes = [len(ring) for ring in ring_info.AtomRings()]
-           large_ring_count = sum(1 for size in ring_sizes if size >= max_atoms_per_ring)
+           large_ring_count = sum(1 for size in ring_sizes if size > max_atoms_per_ring)
            return large_ring_count
        except:
            return None
 
-    def cal_properties(self, smiles):
+    def cal_properties(self, smiles, max_atoms_per_ring):
         SA = self.SA_predictor(smiles)
         logP = self.logP_predictor(smiles)
         pic50 = self.pic50_predictor.predict(smiles)
-        large_ring_count = self.count_large_rings(smiles)
+        large_ring_count = self.count_large_rings(smiles, max_atoms_per_ring)
     
         return logP, SA, pic50, large_ring_count
 
-    def filter_lst_smiles(self, list_smiles, lower_logP=1, upper_logP=4, lower_SA=1, upper_SA=3, lower_pic50=8, upper_pic50=20, max_rings_count=1, save_dir="./filtered_smiles",  save_img_smiles=False):  
+    def filter_lst_smiles(self, list_smiles, lower_logP=1, upper_logP=4, lower_SA=1, upper_SA=3, lower_pic50=8, upper_pic50=20, max_atoms_per_ring=6, max_rings_count=1, save_dir="./filtered_smiles",  save_img_smiles=False):  
         filtered_smiles_count = 0
         filtered_smiles = []
         count = 0
         for smiles in tqdm(list_smiles):     
-            logP, SA, pic50, large_ring_count = self.cal_properties(smiles)
+            logP, SA, pic50, large_ring_count = self.cal_properties(smiles, max_atoms_per_ring)
             if lower_logP <= logP <= upper_logP and lower_SA <= SA <= upper_SA and lower_pic50 <= pic50 <= upper_pic50 and large_ring_count <= max_rings_count:
                 filtered_smiles_count += 1
                 filtered_smiles.append((smiles, logP, SA, pic50))

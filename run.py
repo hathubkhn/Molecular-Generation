@@ -15,14 +15,14 @@ def get_final_smiles(generator, filterer, thresholds, n_final_smiles, scale_up=2
     final_smiles = []
     count = 0
 
-    lower_logP, upper_logP, lower_SA, upper_SA, lower_pic50, upper_pic50, max_rings_count = thresholds
+    lower_logP, upper_logP, lower_SA, upper_SA, lower_pic50, upper_pic50, max_atoms_per_ring, max_rings_count = thresholds
 
     while len(final_smiles) < n_final_smiles:
         start = time.time()
         print(f"Generate batch {count}...")
         count += 1
         generated_smiles = generator.generate(n_samples=n_final_smiles*scale_up)
-        filtered_smiles = filterer.filter_lst_smiles(generated_smiles, lower_logP=lower_logP, upper_logP=upper_logP, lower_SA=lower_SA, upper_SA=upper_SA, lower_pic50=lower_pic50, upper_pic50=upper_pic50, max_rings_count=max_rings_count)
+        filtered_smiles = filterer.filter_lst_smiles(generated_smiles, lower_logP=lower_logP, upper_logP=upper_logP, lower_SA=lower_SA, upper_SA=upper_SA, lower_pic50=lower_pic50, upper_pic50=upper_pic50, max_atoms_per_ring=max_atoms_per_ring, max_rings_count=max_rings_count)
 
         final_smiles.extend(filtered_smiles)
         print(f"Batch finished in {time.time() - start}")
@@ -62,7 +62,7 @@ if __name__ == '__main__':
 
     filterer = SMILESFilterer()
 
-    thresholds = (1, 4, 1, 3, 8, 12, 3)
+    thresholds = (1, 4, 1, 3, 8, 12, 6, 1)
     final_smiles = get_final_smiles(generator, filterer, thresholds, args.n_final_smiles)
     
     print(final_smiles)
