@@ -1,6 +1,7 @@
 # Molecule Generation with DiGress
 
-Pytorch implementation for "Integrating Diffusion Models and Molecular Modeling for PARP1 Inhibitors Generation". This repository combines DiGress diffusion model for molecule generation with a GNN-based predictor for pIC50 value estimation.
+Pytorch implementation for "Integrating Diffusion Models and Molecular Modeling for PARP1 Inhibitors Generation", submited in Journal of Biomolecular Structure & Dynamics
+This repository combines DiGress diffusion model for molecule generation with a GNN-based predictor for pIC50 value estimation.
 
 ## Environment Setup
 
